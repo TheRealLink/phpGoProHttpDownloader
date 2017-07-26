@@ -3,20 +3,16 @@
 define('DOWNLOADDIR','/Users/edorr/Pictures/GoPro');
 define('CAMURL','http://10.5.5.9');
 
-// get items from cam
-$gpMediaList = file_get_contents(CAMURL."/gp/gpMediaList");
-$goProMediaList = json_decode($gpMediaList);
-
-$versionText = file_get_contents(CAMURL.'/videos/MISC/version.txt');
+//$versionText = file_get_contents(CAMURL.'/videos/MISC/version.txt');
 // fix version json
-$versionText = str_replace(','.PHP_EOL.'}','}',$versionText);
-$version = json_decode($versionText);
+//$versionText = str_replace(','.PHP_EOL.'}','}',$versionText);
+//$version = json_decode($versionText);
 
 // check if we can find cam type
-if(empty($version)) {
-  echo "cam not connected".PHP_EOL;
-  exit(2);
-}
+//if(empty($version)) {
+//<F2>  echo "cam not connected".PHP_EOL;
+//  exit(2);
+//}
 
 // check if sync directory exist and create
 if(!is_dir(DOWNLOADDIR)) {
@@ -24,14 +20,24 @@ if(!is_dir(DOWNLOADDIR)) {
 }
 
 // echo some cam details
-echo "#########################################" . PHP_EOL;
-echo "# CONNECTED TO CAM:" . PHP_EOL;
-foreach($version as $key => $value) {
-  echo "# " . $key . ": " . $value . PHP_EOL;
-}
-echo "#########################################" . PHP_EOL;
-echo PHP_EOL;
-
+//echo "#########################################" . PHP_EOL;
+//echo "# CONNECTED TO CAM:" . PHP_EOL;
+//foreach($version as $key => $value) {
+//  echo "# " . $key . ": " . $value . PHP_EOL;
+//}
+//echo "#########################################" . PHP_EOL;
+//echo PHP_EOL;
+echo "switch WLAN to DX12CAM1".PHP_EOL;
+system('networksetup -setairportnetwork en0 DX12CAM1 swim0199');
+sleep(5);
+echo "stopping cam activity".PHP_EOL;
+sleep(1);
+$result = file_get_contents(CAMURL."/gp/gpControl/command/shutter?p=0");
+sleep(5);
+echo "download files".PHP_EOL;
+// get items from cam
+$gpMediaList = file_get_contents(CAMURL."/gp/gpMediaList");
+$goProMediaList = json_decode($gpMediaList);
 // loop thru all files and download
 foreach($goProMediaList->media as $directory) {
         foreach($directory->fs as $file) {
@@ -52,4 +58,11 @@ foreach($goProMediaList->media as $directory) {
                 echo PHP_EOL;
         }
 }
+echo "starting cam activity".PHP_EOL;
+sleep(1);
+$result = file_get_contents(CAMURL."/gp/gpControl/command/shutter?p=1");
+sleep(1);
+echo "switch WLAN to decix-guests".PHP_EOL;
+system('networksetup -setairportnetwork en0 decix-guests welcometodecix');
+sleep(5);
 echo "scripted ended successfully" . PHP_EOL;
